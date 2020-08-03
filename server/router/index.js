@@ -31,7 +31,7 @@ router.get('/petrol', async (req, res) => {
 
         res.status(200).send(petrolPrices);
     } catch (error) {
-        res.status(400).send(error);
+        res.status(500).send(error);
     }
 });
 
