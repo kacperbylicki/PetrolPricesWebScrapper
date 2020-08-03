@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
     try {
         await res.status(200).json({ message: 'Petrol Web-scrapper working correctly.' });
     } catch (error) {
-        await res.status(400).json({ message: error });
+        await res.status(500).json({ message: error });
     }
 });
 
