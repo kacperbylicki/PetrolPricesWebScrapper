@@ -19,7 +19,6 @@ router.get('/petrol', async (req, res) => {
         const { data } = response;
         const $ = await cheerio.load(data, { ignoreWhitespace: false });
         const petrolTable = $('.bg-color');
-        let petrolPrices = [];
 
         let Gas95 = petrolTable.find('td:nth-child(2) > a:nth-child(1)').text().replace(/\s+/g, '');
         let Gas98 = petrolTable.find('td:nth-child(3) > a:nth-child(1)').text().replace(/\s+/g, '');
@@ -27,12 +26,16 @@ router.get('/petrol', async (req, res) => {
         let ONP = petrolTable.find('td:nth-child(5) > a:nth-child(1)').text().replace(/\s+/g, '');
         let LPG = petrolTable.find('td:nth-child(6) > a:nth-child(1)').text().replace(/\s+/g, '');
 
-        petrolPrices = [...petrolPrices, { PB95: Gas95, PB98: Gas98, ON: ON, ONP: ONP, LPG: LPG }];
+        let petrolPrices = [{ PB95: Gas95, PB98: Gas98, ON: ON, ONP: ONP, LPG: LPG }];
 
         res.status(200).send(petrolPrices);
     } catch (error) {
         res.status(500).send(error);
     }
+});
+
+router.post('/mail', async (req, res) => {
+
 });
 
 module.exports = router;
