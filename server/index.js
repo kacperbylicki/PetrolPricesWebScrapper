@@ -1,21 +1,28 @@
 import express from 'express';
-import dotenv from 'dotenv';
+import '@babel/polyfill';
 import cors from 'cors';
-import router from './router';
-
-dotenv.config();
+import { route } from './router/';
+import { 
+    port,
+    cors_origin
+} from './env';
 
 const app = express();
+
 const corsOptions = {
-    origin: 'http://localhost:8080',
+    origin: cors_origin,
     optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
-app.use(router);
 
-const PORT = process.env.PORT || 4690;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}.`);
+app.use(express.urlencoded({ extended: false }));
+
+app.use(express.json());
+
+app.use('/api/v1', route);
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}.`);
 });
 

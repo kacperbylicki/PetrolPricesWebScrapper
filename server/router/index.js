@@ -1,41 +1,60 @@
 import express from 'express';
-import axios from 'axios';
-import cheerio from 'cheerio';
+import redis from 'redis';
 
-const router = express.Router();
+import { 
+    getPetrolPrices 
+} from '../middleware';
 
-router.get('/', async (req, res) => {
+import { 
+    petrol_url,
+    redis_port
+} from '../env';
+
+export const route = express.Router();
+
+const client = redis.createClient(redis_port);
+
+route.get('/', async (req, res) => {
     try {
-        await res.status(200).json({ message: 'Petrol Web-scrapper working correctly.' });
+
+        res.status(200).send({ message: `Petrol API's Online!`});
+
     } catch (error) {
-        await res.status(500).json({ message: error });
+
+        res.status(500).send({ error: error });
+
     }
 });
 
-router.get('/petrol', async (req, res) => {
+route.get('/petrol', async (req, res) => {
     try {
-        const url = process.env.PETROL_URL;
-        const response = await axios(url);
-        const { data } = response;
-        const $ = await cheerio.load(data, { ignoreWhitespace: false });
-        const petrolTable = $('.bg-color');
+        const petrolItem = req.originalUrl;
+        
+        client.get(petrolItem, async (error, petrolArray) => {
+            if (petrolArray) {
 
-        let Gas95 = petrolTable.find('td:nth-child(2) > a:nth-child(1)').text().replace(/\s+/g, '');
-        let Gas98 = petrolTable.find('td:nth-child(3) > a:nth-child(1)').text().replace(/\s+/g, '');
-        let ON = petrolTable.find('td:nth-child(4) > a:nth-child(1)').text().replace(/\s+/g, '');
-        let ONP = petrolTable.find('td:nth-child(5) > a:nth-child(1)').text().replace(/\s+/g, '');
-        let LPG = petrolTable.find('td:nth-child(6) > a:nth-child(1)').text().replace(/\s+/g, '');
+                return res.status(200).send({  
+                    data: JSON.parse(petrolArray)
+                });
 
-        let petrolPrices = [{ PB95: Gas95, PB98: Gas98, ON: ON, ONP: ONP, LPG: LPG }];
+            } else {
 
-        res.status(200).send(petrolPrices);
+                const petrolPrices = await getPetrolPrices( petrol_url );
+
+                if (petrolPrices !== [] && petrolPrices !== undefined) {
+                    client.setex(petrolItem, 86400, JSON.stringify(petrolPrices));
+
+                    return res.status(200).send({  
+                        data: petrolPrices 
+                    });
+                }
+
+            }
+        });
+
     } catch (error) {
+
         res.status(500).send(error);
+
     }
 });
-
-router.post('/mail', async (req, res) => {
-
-});
-
-module.exports = router;
